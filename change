@@ -1,4 +1,11 @@
-	var sFromDate = this.getView().getModel("excelData").getProperty("/fromDate");
-			sFromDate = sFromDate.split("-").join("");
-			this.getView().getModel("excelData").setProperty("/fromDate",sFromDate);
-			var oData = this.getView().getModel("excelData").getData();
+		var sText = oEvent.getSource().getSelectedButton().getText();
+			var aConfig = [{text:"All West Coast ULSD",url:"https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=PET&s=EMD_EPD2DXL0_PTE_R50_DPG&f=M"},
+			{text:"Californica Only ULSD","url":"https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=PET&s=EMD_EPD2DXL0_PTE_SCA_DPG&f=M"},
+			{text:"West Coast PADD 5 Except for California ULSD","url":"https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=PET&s=EMD_EPD2DXL0_PTE_R5XCA_DPG&f=M"},
+			{text:"Lower Atlantic PADD 1C","url":"https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=PET&s=EMD_EPD2DXL0_PTE_R1Z_DPG&f=M"},
+			{text:"Rocky Mountain PADD 4","url":"https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=pet&s=emd_epd2dxl0_pte_r40_dpg&f=m"}
+			];
+			var oConfig = aConfig.find(function(oConfig){
+				return oConfig.text === sText;
+			}.bind(this));
+			window.open(oConfig.url);
