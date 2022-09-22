@@ -1,0 +1,4 @@
+	var sFromDate = this.getView().getModel("excelData").getProperty("/fromDate");
+			sFromDate = sFromDate.split("-").join("");
+			this.getView().getModel("excelData").setProperty("/fromDate",sFromDate);
+			var oData = this.getView().getModel("excelData").getData();
