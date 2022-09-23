@@ -1,0 +1,214 @@
+/* global XLSX true */
+sap.ui.define([
+	"sap/ui/core/mvc/Controller",
+	"com/org/excelupload/uploadXl/utils/xlsx",
+	"sap/ui/model/Filter",
+	"sap/ui/model/FilterOperator"
+], function (Controller, xlsx, Filter, FilterOperator) {
+	"use strict";
+
+	return Controller.extend("com.org.excelupload.uploadXl.controller.View1", {
+		onInit: function () {
+			this.getView().getModel("excelData").setData({
+				"NAV_HEADER_TO_PRINT": {
+					"results": []
+				},
+				"fromDate": "",
+				"toDate": "",
+				"division": "",
+				"region": ""
+			});
+		},
+		handleUpload: function () {
+			var oSelectedFile = this.getView().byId("fileUploader").FUEl.files[0];
+			if (oSelectedFile) {
+				var fileReader = new FileReader();
+				fileReader.onload = function (event) {
+					var data = event.target.result;
+					var jsonOpts = {
+						header: 1,
+						defval: '',
+						blankrows: true,
+						raw: false,
+						dateNF: 'd"/"m"/"yyyy' // <--- need dateNF in sheet_to_json options (note the escape chars)
+					};
+					var workbook = XLSX.read(data, {
+						type: "binary"
+					});
+					//	workbook.SheetNames.forEach(function(sheet){
+					var rowObject = XLSX.utils.sheet_to_row_object_array(
+						workbook.Sheets["Data 1"], jsonOpts);
+					// remove 2 items
+					rowObject.shift();
+					rowObject.shift();
+					rowObject.shift();
+					this._processRowData(rowObject);
+					//this.getView().getModel("excelData").setProperty("/NAV_HEADER_TO_PRINT/results",rowObject);
+					this._uploadData();
+					//	}.bind(this));
+				}.bind(this);
+				fileReader.readAsBinaryString(oSelectedFile);
+			}
+		},
+		_processRowData: function (rowObject) {
+
+			var aData = [];
+
+			rowObject.forEach(function (oRow) {
+				var oTemplate = this._getPostJSONTemplate();
+				var sFromDate = sap.ui.core.format.DateFormat.getDateTimeInstance({
+					pattern: "yyyyMMdd"
+				}).format(new Date(oRow[0]));
+				var oToDate = new Date(new Date(rowObject[1][0]).getTime() + 4 * 24 * 60 * 60 * 1000);
+				var SToDate = sap.ui.core.format.DateFormat.getDateTimeInstance({
+					pattern: "yyyyMMdd"
+				}).format(oToDate);
+
+				oTemplate.weekPrice = oRow[1];
+				oTemplate.validFrom = sFromDate;
+				oTemplate.validTo = SToDate;
+				aData.push(oTemplate);
+			}.bind(this));
+			this.getView().getModel("excelData").setProperty("/NAV_HEADER_TO_PRINT/results", aData);
+		},
+		_getPostJSONTemplate: function () {
+			var sFromDate = this.getView().getModel("excelData").getProperty("/fromDate");
+			sFromDate = sFromDate.split("-").join("");
+			// var sToDate = this.getView().getModel("excelData").getProperty("/toDate");
+			// sToDate = sToDate.split("-").join("");
+
+			return {
+				"fuelDate": sFromDate,
+				"weekPrice": "",
+				"salesOrg": "",
+				"distrChannel": "",
+				"division": "",
+				"shiipTo": "",
+				"supplPlant": "",
+				"condType": "",
+				"amount": "",
+				"condCurr": "",
+				"pricingUnit": "",
+				"unitOfMeasure": "",
+				"validFrom": sFromDate,
+				"validTo": ""
+
+			};
+		},
+		_uploadData: function () {
+			var oSelectedRadio = this.getView().byId("selectedRadio").getSelectedButton();
+			var sRegion = oSelectedRadio ? oSelectedRadio.getText() : "";
+			this.getView().getModel("excelData").setProperty("region", sRegion);
+			//	var oData = this.getView().getModel("excelData").getData();
+			// changes 23.09
+			var sFromDate = this.getView().getModel("excelData").getProperty("/fromDate");
+			var oFDate = new Date(sFromDate);
+			var oSDate = null;
+
+			if (oFDate.getDay() === 0) {
+				oSDate = new Date(oFDate.getTime() + 24 * 60 * 60 * 1000);
+			} else if (oFDate.getDay() === 1) {
+				oSDate = new Date(oFDate.getTime());
+			} else {
+				var iCalc = oFDate.getDay() - 1;
+				oSDate = new Date(oFDate.getTime() - (iCalc * 24 * 60 * 60 * 1000));
+			}
+			var sToDate = new Date(new Date(oSDate).getTime() + (4 * 24 * 60 * 60 * 1000));
+			var sFrmDate = sap.ui.core.format.DateFormat.getDateTimeInstance({
+				pattern: "yyyyMMdd"
+			}).format(oSDate);
+			var sTDate = sap.ui.core.format.DateFormat.getDateTimeInstance({
+				pattern: "yyyyMMdd"
+			}).format(sToDate);
+			var oExcelModel = this.getView().getModel("excelData");
+			var oPayload = {
+				"fromDate": sFrmDate,
+				"toDate": sTDate,
+				"division": oExcelModel.getProperty("/division"),
+				"region": oExcelModel.getProperty("/region"),
+				"NAV_HEADER_TO_PRINT": oExcelModel.getProperty("/NAV_HEADER_TO_PRINT")
+			};
+
+			//	this.getView().getModel("excelData").setProperty("/fromDate",sFromDate);
+			//	var oData = this.getView().getModel("excelData").getData();
+			var oView = this.getView();
+			oView.setBusy(true);
+			var oModel = this.getView().getModel();
+			oModel.create("/FUEL_SURCHRG_HEADERSet", oPayload, {
+				success: function (aData, oResponse) {
+					this._downloadData();
+					oView.setBusy(false);
+				}.bind(this),
+				error: function (oError) {
+
+				}.bind(this)
+			});
+			//end change 23.09
+		},
+		downloadWeekly: function (oEvent) {
+			var sText = oEvent.getSource().getSelectedButton().getText();
+			var aConfig = [{
+				text: "All West Coast ULSD",
+				url: "https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=PET&s=EMD_EPD2DXL0_PTE_R50_DPG&f=M"
+			}, {
+				text: "Californica Only ULSD",
+				"url": "https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=PET&s=EMD_EPD2DXL0_PTE_SCA_DPG&f=M"
+			}, {
+				text: "West Coast PADD 5 Except for California ULSD",
+				"url": "https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=PET&s=EMD_EPD2DXL0_PTE_R5XCA_DPG&f=M"
+			}, {
+				text: "Lower Atlantic PADD 1C",
+				"url": "https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=PET&s=EMD_EPD2DXL0_PTE_R1Z_DPG&f=M"
+			}, {
+				text: "Rocky Mountain PADD 4",
+				"url": "https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=pet&s=emd_epd2dxl0_pte_r40_dpg&f=m"
+			}];
+			var oConfig = aConfig.find(function (oConfig) {
+				return oConfig.text === sText;
+			}.bind(this));
+			window.open(oConfig.url);
+		},
+		_downloadData: function () {
+			//23.09
+			var sFromDate = this.getView().getModel("excelData").getProperty("/fromDate");
+			sFromDate = sFromDate.split("-").join("");
+			var sToDate = this.getView().getModel("excelData").getProperty("/toDate");
+			sToDate = sToDate.split("-").join("");
+			var aFilters = [new Filter('fromDate', FilterOperator.EQ, sFromDate), new Filter('fromDate', FilterOperator.EQ, sToDate)];
+			// this.getView().byId("resultTable").getBinding("items").filter(new Filter({
+			// 	filters: aFilters,
+			// 	and: true
+			// }));
+			var sObjectPath = this.getOwnerComponent().getModel().createKey("/FUEL_SURCHRG_HEADERSet", {
+				fromDate:sFromDate,
+				toDate: sToDate
+			});
+			this.getView().bindElement({
+				path: sObjectPath,
+					 parameters: {
+       expand: "NAV_HEADER_TO_PRINT"
+    }
+				events: {
+					change: this._onBindingChange.bind(this),
+					dataRequested: function () { //Busy indicator
+
+					},
+					dataReceived: function () { //Busy indicator
+
+					}
+				}
+			});
+		},
+		onDownloadResult: function () {
+			//23.09
+			var sFromDate = this.getView().getModel("excelData").getProperty("/fromDate");
+			sFromDate = sFromDate.split("-").join("");
+			var sToDate = this.getView().getModel("excelData").getProperty("/toDate");
+			sToDate = sToDate.split("-").join("");
+			var sURL = "/sap/opu/odata/sap/ZGW_EIA_FUEL_SURCHARGE_SRV/FUEL_SURCHRG_HEADERSet(fromDate=" + sFromDate + ",toDate=" + sToDate +
+				")?$expand='NAV_HEADER_TO_PRINT'&$format=xls&$filter=(fromDate eq '" + sFromDate +
+				"' and toDate eq '" + sToDate + "')";
+			window.open(sURL);
+		}
+	});
+});
