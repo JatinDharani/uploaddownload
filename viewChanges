@@ -1,0 +1,2 @@
+line #57 replace Table item binding
+		<Table id="resultTable" items="{path:'NAV_HEADER_TO_PRINT'}">
