@@ -1,0 +1,149 @@
+<mvc:View controllerName="com.org.excelupload.uploadXl.controller.View1" xmlns:mvc="sap.ui.core.mvc" displayBlock="true" xmlns="sap.m"
+	xmlns:l="sap.ui.layout" xmlns:u="sap.ui.unified" xmlns:core="sap.ui.core" xmlns:f="sap.ui.layout.form">
+	<Shell id="shell">
+		<App id="app">
+			<pages>
+				<Page id="page" title="Upload / Download" showFooter="true">
+					<customHeader>
+						<Toolbar>
+							<Title text="Upload / Download"/>
+							<ToolbarSpacer/>
+						</Toolbar>
+					</customHeader>
+					<content>
+						<VBox class="sapUiSmallMargin">
+							<f:SimpleForm id="SimpleFormChange354" editable="true" layout="ResponsiveGridLayout" title="Upload Weekly Data" labelSpanXL="3"
+								labelSpanL="3" labelSpanM="3" labelSpanS="12" adjustLabelSpan="false" emptySpanXL="0" emptySpanL="0" emptySpanM="0" emptySpanS="0"
+								columnsXL="1" columnsL="1" columnsM="1" singleContainerFullSize="false">
+								<f:content>
+									<Label text="File to upload"/>
+									<u:FileUploader id="fileUploader" name="myFileUpload" uploadUrl="upload/" tooltip="Upload your file to the local server"
+										uploadComplete="handleUploadComplete"/>
+									<Label text="from Date"/>
+									<DatePicker
+										value="{path:'excelData>/fromDate',type:'sap.ui.model.odata.type.Date',constraints:{displayFormat:'Date'},formatOptions: {pattern: 'dd/MM/yyyy',UTC: true}}">
+										 <layoutData>
+            <l:GridData span="XL2 L2 M2 S12"/>
+        </layoutData>
+									</DatePicker>
+									<Label text="to Date" visible="false"/>
+									<DatePicker visible="false"
+										value="{path:'excelData>/toDate',type:'sap.ui.model.odata.type.Date',constraints:{displayFormat:'Date'},formatOptions: {pattern: 'dd/MM/yyyy',UTC: true}}">
+										 <layoutData>
+            <l:GridData span="XL2 L2 M2 S12"/>
+        </layoutData>
+									</DatePicker>
+									<Label text="Division"/>
+									<ComboBox selectedKey="{excelData>/Division}" items="{ path: '/DIVISIONSet'}">
+										<core:Item key="{division}" text="{division}"/>
+										 <layoutData>
+            <l:GridData span="XL2 L2 M2 S12"/>
+        </layoutData>
+									
+									</ComboBox>
+									<Label text="Region"/>
+									<RadioButtonGroup id="selectedRadio" columns="3" change="downloadWeekly" width="100%" class="sapUiMediumMarginBottom">
+										<RadioButton text="All West Coast ULSD"/>
+										<RadioButton text="Californica Only ULSD"/>
+										<RadioButton text="West Coast PADD 5 Except for California ULSD"/>
+										<RadioButton text="Lower Atlantic PADD 1C"/>
+										<RadioButton text="Rocky Mountain PADD 4"/>
+									</RadioButtonGroup>
+								</f:content>
+							</f:SimpleForm>
+							<Button text="Upload" press="handleUpload"/>
+						</VBox>
+						<VBox>
+							<Table id="resultTable" items="{oDataModel>/results}">
+							<headerToolbar>
+									<OverflowToolbar width="100%">
+										<content>
+											<ToolbarSpacer/>
+											<Button text="Download" icon="sap-icon://download" press="onDownloadResult"/>
+										</content>
+									</OverflowToolbar>
+								</headerToolbar>
+								<columns>
+									<Column>
+										<Label text="Fuel Date"/>
+									</Column>
+									<Column>
+										<Label text="Week Price"/>
+									</Column>
+									<Column>
+										<Label text="Sales Organization"/>
+									</Column>
+									<Column>
+										<Label text="Distribution Channel"/>
+									</Column>
+									<Column>
+										<Label text="Division"/>
+									</Column>
+									<Column>
+										<Label text="Ship-to-Party"/>
+									</Column>
+									<Column>
+										<Label text="Supplying Plant"/>
+									</Column>
+									<Column>
+										<Label text="Condition"/>
+									</Column>
+									<Column>
+										<Label text="Amount"/>
+									</Column>
+									<Column>
+										<Label text="Condition"/>
+									</Column>
+									<Column>
+										<Label text="Pricing Unit"/>
+									</Column>
+									<Column>
+										<Label text="Unit Of Measure"/>
+									</Column>
+									<Column>
+										<Label text="Valid From"/>
+									</Column>
+									<Column>
+										<Label text="Valid To"/>
+									</Column>
+								</columns>
+								<items>
+									<ColumnListItem>
+										<cells>
+											<Label
+												text="{path:'oDataModel>fuelDate',type:'sap.ui.model.odata.type.Date',constraints:{displayFormat:'Date'},formatOptions: {pattern: 'dd/MM/yyyy',UTC: true}}"/>
+											<Label text="{oDataModel>WeekPrice}"/>
+											<Label text="{oDataModel>SalesOrg}"/>
+											<Label text="{oDataModel>distrChannel}"/>
+											<Label text="{oDataModel>division}"/>
+											<Label text="{oDataModel>ShipTo}"/>
+											<Label text="{oDataModel>SupplPlant}"/>
+											<Label text="{oDataModel>condType}"/>
+											<Label text="{oDataModel>amount}"/>
+											<Label text="{oDataModel>condCurr}"/>
+											<Label text="{oDataModel>pricingUnit}"/>
+											<Label text="{oDataModel>unitOfMeasure}"/>
+											<Label
+												text="{path:'oDataModel>ValidFrom',type:'sap.ui.model.odata.type.Date',constraints:{displayFormat:'Date'},formatOptions: {pattern: 'dd/MM/yyyy',UTC: true}}"/>
+											<Label
+												text="{path:'oDataModel>ValidTo',type:'sap.ui.model.odata.type.Date',constraints:{displayFormat:'Date'},formatOptions: {pattern: 'dd/MM/yyyy',UTC: true}}"/>
+										</cells>
+									</ColumnListItem>
+								</items>
+							</Table>
+						</VBox>
+					</content>
+					<footer>
+						<Toolbar>
+							<!--<Button text="All West Coast ULSD" press="downloadWeekly"/>-->
+							<!--<Button text="Californica Only ULSD" press="downloadWeekly"/>-->
+							<!--<Button text="West Coast PADD 5 Except for California ULSD" press="downloadWeekly"/>-->
+							<!--<Button text="Lower Atlantic PADD 1C" press="downloadWeekly"/>-->
+							<!--<Button text="Rocky Mountain PADD 4" press="downloadWeekly"/>-->
+						</Toolbar>
+					</footer>
+				</Page>
+			</pages>
+		</App>
+	</Shell>
+</mvc:View>
