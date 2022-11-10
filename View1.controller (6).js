@@ -406,7 +406,7 @@ sap.ui.define([
 
 		_showWeeklyData: function () {
 
-			var sFromDate = this.getView().getModel("excelData").getProperty("/WeekStartDate");
+			var sFromDate = this.getView().getModel("excelData").getProperty("/fromDate");
 			var oFDate = new Date(sFromDate);
 			var oSDate = null;
 
