@@ -18,7 +18,8 @@ sap.ui.define([
 			}
 			var aResults = [];
 			var aProperties  = ["EiaRegio","WeekPrice","Surcharge"];
-			aSelectedItems.forEach(function(oItem){
+			aSelectedItems.forEach(function(oIm){
+oItem = oIm.getObject();
 				var oResult = {};
 			    aProperties.forEach(function(oProperty){
 			    	oResult[oProperty] = oItem[oProperty];
