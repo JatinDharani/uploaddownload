@@ -422,6 +422,8 @@ sap.ui.define([
 			var sFrmDate = sap.ui.core.format.DateFormat.getDateTimeInstance({
 				pattern: "dd-MM-yyyy"
 			}).format(oSDate);
+				sFrmDate = sFrmDate + "T00:00:00";
+			
 			var sTDate = sap.ui.core.format.DateFormat.getDateTimeInstance({
 				pattern: "dd-MM-yyyy"
 			}).format(sToDate);
